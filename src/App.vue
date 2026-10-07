@@ -1,9 +1,10 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import ColorSelector from "./components/ColorSelector.vue";
 import CapSelector from "./components/CapSelector.vue";
 import SurfaceSelector from "./components/SurfaceSelector.vue";
 import ConfigurationSummary from "./components/ConfigurationSummary.vue";
+import { useCaps } from "./composables/useCaps";
 
 const color = ref({
 	id: 1,
@@ -18,14 +19,17 @@ const colors = [
 	{ id: 4, name: "Синий", value: "#0000ff" },
 ];
 
-const caps = [
-	{ id: 1, name: "Чёрная крышка" },
-	{ id: 2, name: "Белая крышка" },
-	{ id: 3, name: "Красная крышка" },
-];
-const selectedCapId = ref(1);
-const selectedCap = computed(() => {
-	return caps.find((item) => item.id === selectedCapId.value);
+const {
+	caps,
+	selectedCapId,
+	selectedCap,
+	isLoading,
+	error,
+	loadCaps,
+} = useCaps();
+
+onMounted(() => {
+	loadCaps();
 });
 
 const surfaces = [
@@ -46,7 +50,7 @@ const configuration = computed(() => ({
 
 <template>
 	<main>
-		<h2>Конфигурация</h2>
+		<h2>Конфигуратор</h2>
 
 		<!-- <pre>{{ configuration }}</pre> -->
 
@@ -54,11 +58,22 @@ const configuration = computed(() => ({
 		<p>Крышка: {{ selectedCap.name }}</p>
 		<p>Поверхность: {{ selectedSurface.name }}</p>
 
+		<div v-if="isLoading">
+			Загрузка крышек...
+		</div>
+
 		<CapSelector
+			v-else
 			:caps="caps"
 			:selected-cap-id="selectedCapId"
 			@select="selectedCapId = $event"
 		/>
+
+		<!-- <CapSelector
+			:caps="caps"
+			:selected-cap-id="selectedCapId"
+			@select="selectedCapId = $event"
+		/> -->
 
 		<SurfaceSelector
 			:surfaces="surfaces"
